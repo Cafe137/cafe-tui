@@ -14,7 +14,7 @@ export function registerJestCommand(parser: Parser) {
             alias: 'j'
         }).withFn(async () => {
             console.log('Fetching available stamps from', BEE_DEBUG_API_URL)
-            const response = await axios(BEE_DEBUG_API_URL)
+            const response = await axios(`${BEE_DEBUG_API_URL}/stamps`)
             const json = Types.asObject(await response.data)
             const stamps: Stamp[] = Types.asArray(json.stamps).map(x => ({
                 batchID: Types.asString(Types.asObject(x).batchID)
