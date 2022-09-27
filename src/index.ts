@@ -6,6 +6,7 @@ import { exit } from 'process'
 import { registerBeeCommand } from './commands/bee'
 import { registerJestCommand } from './commands/jest'
 import { registerProjectCommand } from './commands/project'
+import { registerProxyCommand } from './commands/proxy'
 
 async function main() {
     const parser = createParser({
@@ -18,13 +19,14 @@ async function main() {
     })
     registerBeeCommand(parser)
     registerJestCommand(parser)
+    registerProxyCommand(parser)
     registerProjectCommand(parser)
     const result = await parser.parse(process.argv.slice(2))
     if (Types.isString(result)) {
         console.error(result)
         exit(1)
     }
-    if (result.command.fn) {
+    if (Types.isFunction(result.command.fn)) {
         await result.command.fn(result).catch(x => {
             console.error(x.message)
             exit(1)
