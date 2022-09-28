@@ -7,6 +7,7 @@ import { registerBeeCommand } from './commands/bee'
 import { registerJestCommand } from './commands/jest'
 import { registerProjectCommand } from './commands/project'
 import { registerProxyCommand } from './commands/proxy'
+import { registerProxyCliCommand } from './commands/proxy-cli'
 
 async function main() {
     const parser = createParser({
@@ -21,6 +22,7 @@ async function main() {
     registerJestCommand(parser)
     registerProxyCommand(parser)
     registerProjectCommand(parser)
+    registerProxyCliCommand(parser)
     const result = await parser.parse(process.argv.slice(2))
     if (Types.isString(result)) {
         console.error(result)
