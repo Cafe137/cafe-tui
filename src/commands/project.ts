@@ -8,7 +8,7 @@ const MAGIC_STRING = 'CAFE_CLI_PROJECT_'
 export function registerProjectCommand(parser: Parser) {
     parser.addCommand(
         new Command('project', 'Move between projects quickly', {
-            alias: 'p'
+            alias: 'P'
         }).withFn(async () => {
             const locations = Objects.filterKeys(process.env, key => key.startsWith(MAGIC_STRING))
             if (Types.isEmptyObject(locations)) {
