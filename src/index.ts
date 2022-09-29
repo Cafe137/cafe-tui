@@ -9,6 +9,7 @@ import { registerNetworkCommand } from './commands/network'
 import { registerProjectCommand } from './commands/project'
 import { registerProxyCommand } from './commands/proxy'
 import { registerProxyCliCommand } from './commands/proxy-cli'
+import { registerWatchCommand } from './commands/watch'
 
 async function main() {
     const parser = createParser({
@@ -22,6 +23,7 @@ async function main() {
     registerBeeCommand(parser)
     registerJestCommand(parser)
     registerProxyCommand(parser)
+    registerWatchCommand(parser)
     registerNetworkCommand(parser)
     registerProjectCommand(parser)
     registerProxyCliCommand(parser)
