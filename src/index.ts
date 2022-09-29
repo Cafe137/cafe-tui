@@ -5,6 +5,7 @@ import { Types } from 'cafe-utility'
 import { exit } from 'process'
 import { registerBeeCommand } from './commands/bee'
 import { registerJestCommand } from './commands/jest'
+import { registerNetworkCommand } from './commands/network'
 import { registerProjectCommand } from './commands/project'
 import { registerProxyCommand } from './commands/proxy'
 import { registerProxyCliCommand } from './commands/proxy-cli'
@@ -21,6 +22,7 @@ async function main() {
     registerBeeCommand(parser)
     registerJestCommand(parser)
     registerProxyCommand(parser)
+    registerNetworkCommand(parser)
     registerProjectCommand(parser)
     registerProxyCliCommand(parser)
     const result = await parser.parse(process.argv.slice(2))
