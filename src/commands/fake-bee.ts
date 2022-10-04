@@ -107,6 +107,7 @@ function runFakeBee(parserContext: CafeFnContext) {
         context.body = { reference: Strings.randomHex(64) }
     })
     router.post('/bzz', (context: Koa.Context) => {
+        context.set('swarm-tag', '42')
         context.body = { reference: Strings.randomHex(64) }
     })
     router.patch('/stamps/topup/:id/:amount', async (context: Koa.Context) => {
