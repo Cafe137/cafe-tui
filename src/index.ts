@@ -4,6 +4,7 @@ import { createParser } from 'cafe-args'
 import { Types } from 'cafe-utility'
 import { exit } from 'process'
 import { registerBeeCommand } from './commands/bee'
+import { registerFakeBeeCommand } from './commands/fake-bee'
 import { registerJestCommand } from './commands/jest'
 import { registerNetworkCommand } from './commands/network'
 import { registerProjectCommand } from './commands/project'
@@ -24,6 +25,7 @@ async function main() {
     registerJestCommand(parser)
     registerProxyCommand(parser)
     registerWatchCommand(parser)
+    registerFakeBeeCommand(parser)
     registerNetworkCommand(parser)
     registerProjectCommand(parser)
     registerProxyCliCommand(parser)
