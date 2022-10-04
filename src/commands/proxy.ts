@@ -8,10 +8,16 @@ export function registerProxyCommand(parser: Parser) {
             alias: 'p'
         })
             .withOption({
-                key: 'stamp-management',
+                key: 'stamp-autobuy',
                 type: 'boolean',
-                alias: 's',
+                alias: 'b',
                 description: 'Enable stamp autobuying'
+            })
+            .withOption({
+                key: 'stamp-autoextend',
+                type: 'boolean',
+                alias: 'x',
+                description: 'Enable stamp autoextending'
             })
             .withOption({
                 key: 'hostname',
@@ -45,10 +51,16 @@ export function registerProxyCommand(parser: Parser) {
                 default: Dates.minutes(2)
             })
             .withOption({
-                key: 'all',
+                key: 'preset0',
                 type: 'boolean',
-                alias: 'a',
-                description: 'Enables all features'
+                alias: 'p',
+                description: 'Enables all features with autobuying'
+            })
+            .withOption({
+                key: 'preset1',
+                type: 'boolean',
+                alias: 'P',
+                description: 'Enables all features with autoextending'
             })
             .withOption({
                 key: 'debug',
@@ -59,15 +71,30 @@ export function registerProxyCommand(parser: Parser) {
             .withFn(async context => {
                 const location = requireEnv('CAFE_CLI_PROJECT_PROXY')
                 const hostname = context.options['hostname']
-                const ens = context.options['ens'] || context.options['all']
-                const cid = context.options['cid'] || context.options['all']
-                const reupload = context.options['reupload'] || context.options['all']
-                const stampManagement = context.options['stamp-management'] || context.options['all']
-                const env: Record<string, string> = { PATH: Types.asString(process.env.PATH) }
-                if (stampManagement) {
+                const all = context.options['preset0'] || context.options['preset1']
+                const stampAutobuy = context.options['stamp-autobuy'] || context.options.preset0
+                const stampAutoextend = context.options['stamp-autoextend'] || context.options.preset1
+                if (stampAutoextend && stampAutobuy) {
+                    throw Error('Cannot enable both stamp autobuy and autoextend')
+                }
+                const ens = context.options['ens'] || all
+                const cid = context.options['cid'] || all
+                const reupload = context.options['reupload'] || all
+                const env: Record<string, string> = {
+                    PATH: Types.asString(process.env.PATH),
+                    EXPOSE_HASHED_IDENTITY: 'true'
+                }
+                if (stampAutobuy) {
                     env.POSTAGE_DEPTH = '22'
                     env.POSTAGE_AMOUNT = '200000'
                     env.BEE_DEBUG_API_URL = 'http://localhost:1635'
+                }
+                if (stampAutoextend) {
+                    env.POSTAGE_DEPTH = '22'
+                    env.POSTAGE_AMOUNT = '200000'
+                    env.POSTAGE_TTL_MIN = '60'
+                    env.BEE_DEBUG_API_URL = 'http://localhost:1635'
+                    env.POSTAGE_EXTENDSTTL = 'true'
                 }
                 if (hostname) {
                     env.HOSTNAME = Types.asString(hostname)

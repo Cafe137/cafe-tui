@@ -14,10 +14,19 @@ export function registerProxyCliCommand(parser: Parser) {
                 description: 'Swarm-CLI command to execute',
                 required: true
             })
+            .withOption({
+                key: 'readiness',
+                description: 'Check proxy to be ready',
+                type: 'boolean',
+                alias: 'r',
+                default: true
+            })
             .withFn(async context => {
-                const response = await axios.get(`${PROXY_URL}/readiness`)
-                if (response.data !== 'OK') {
-                    throw Error('Gateway Proxy is not ready')
+                if (context.options.readiness) {
+                    const response = await axios.get(`${PROXY_URL}/readiness`)
+                    if (response.data !== 'OK') {
+                        throw Error('Gateway Proxy is not ready')
+                    }
                 }
                 const { argv } = tokenize(context.arguments.command as string, 0)
                 const isUploadCommand = argv[0] === 'upload' || argv[0] === 'feed'
