@@ -1,6 +1,6 @@
 {
     "name": "cafe-tui",
-    "version": "0.11.0",
+    "version": "0.12.0",
     "description": "",
     "main": "dist/index.js",
     "bin": {
@@ -27,7 +27,7 @@
         "@koa/router": "^12.0.0",
         "axios": "^0.27.2",
         "cafe-args": "^2.3.1",
-        "cafe-utility": "^4.9.0",
+        "cafe-utility": "4.14",
         "inquirer": "^8",
         "js-yaml": "^4.1.0",
         "koa": "^2.13.4"
