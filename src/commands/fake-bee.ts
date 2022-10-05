@@ -2,18 +2,9 @@ import Router from '@koa/router'
 import { CafeFnContext, Command, Parser } from 'cafe-args'
 import { Dates, Logger, Numbers, Random, Strings, System, Types } from 'cafe-utility'
 import Koa from 'koa'
+import { Stamp } from '../stamp'
 
 const logger = Logger.create('[Bee]')
-
-interface Stamp {
-    batchID: string
-    usable: boolean
-    amount: string
-    depth: number
-    bucketDepth: number
-    utilization: number
-    batchTTL: number
-}
 
 export function registerFakeBeeCommand(parser: Parser) {
     parser.addCommand(
@@ -41,6 +32,18 @@ export function registerFakeBeeCommand(parser: Parser) {
                 conflicts: 'instant-stamp'
             })
             .withOption({
+                key: 'initial-stamp',
+                alias: 'S',
+                description: 'Create initial stamp',
+                type: 'boolean'
+            })
+            .withOption({
+                key: 'never-usable',
+                type: 'boolean',
+                description: 'Stamps never become usable',
+                alias: 'n'
+            })
+            .withOption({
                 key: 'chaos',
                 type: 'number',
                 description: '100 = all requests fail, 0 = no fail, 50 = 50% fail',
@@ -64,7 +67,19 @@ export function registerFakeBeeCommand(parser: Parser) {
 }
 
 function runFakeBee(parserContext: CafeFnContext) {
-    const stamps: Stamp[] = []
+    function createStamp(amount: unknown, depth: unknown): Stamp {
+        return {
+            batchID: Strings.randomHex(64),
+            usable: !parserContext.options['never-usable'],
+            amount: Types.asString(amount),
+            depth: Numbers.parseIntOrThrow(depth),
+            bucketDepth: 16,
+            utilization: 0,
+            batchTTL: parserContext.options.expire ? 1 : Dates.hours(24)
+        }
+    }
+
+    const stamps: Stamp[] = parserContext.options['initial-stamp'] ? [createStamp('200500', 22)] : []
 
     const app = new Koa()
     app.use(async (context, next) => {
@@ -120,19 +135,13 @@ function runFakeBee(parserContext: CafeFnContext) {
         if (!parserContext.options['instant-stamp']) {
             await System.sleepMillis(Dates.seconds(30))
         }
-        const stamp = {
-            batchID: Strings.randomHex(64),
-            usable: true,
-            amount: context.params.amount,
-            depth: Numbers.parseIntOrThrow(context.params.depth),
-            bucketDepth: 16,
-            utilization: 0,
-            batchTTL: parserContext.options.expire ? 1 : Dates.hours(24)
-        }
+        const stamp = createStamp(context.params.amount, context.params.depth)
         stamps.push(stamp)
         context.body = stamp
     })
     app.use(router.routes())
     app.listen(1633)
     app.listen(1635)
+    app.listen(11633)
+    app.listen(11635)
 }
