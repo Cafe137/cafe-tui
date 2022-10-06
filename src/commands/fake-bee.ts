@@ -1,6 +1,7 @@
 import Router from '@koa/router'
 import { CafeFnContext, Command, Parser } from 'cafe-args'
-import { Dates, Logger, Numbers, Random, Strings, System, Types } from 'cafe-utility'
+import { Arrays, Dates, Logger, Numbers, Random, Strings, System, Types } from 'cafe-utility'
+import chalk from 'chalk'
 import Koa from 'koa'
 import { Stamp } from '../stamp'
 
@@ -11,6 +12,12 @@ export function registerFakeBeeCommand(parser: Parser) {
         new Command('fake-bee', 'Run fake Bee', {
             alias: 'f'
         })
+            .withOption({
+                key: 'purge',
+                type: 'boolean',
+                alias: 'p',
+                description: 'Purge stamps every minute'
+            })
             .withOption({
                 key: 'expire',
                 type: 'boolean',
@@ -44,6 +51,12 @@ export function registerFakeBeeCommand(parser: Parser) {
                 alias: 'n'
             })
             .withOption({
+                key: 'detect-overpurchase',
+                type: 'boolean',
+                description: 'Detect postage overpurchase',
+                alias: 'd'
+            })
+            .withOption({
                 key: 'chaos',
                 type: 'number',
                 description: '100 = all requests fail, 0 = no fail, 50 = 50% fail',
@@ -53,12 +66,12 @@ export function registerFakeBeeCommand(parser: Parser) {
                 alias: 'c'
             })
             .withOption({
-                key: 'delay',
+                key: 'throttling',
                 type: 'number',
                 description: 'Maximum delay in milliseconds',
                 minimum: 0,
                 default: 0,
-                alias: 'd'
+                alias: 't'
             })
             .withFn(async context => {
                 runFakeBee(context)
@@ -79,16 +92,33 @@ function runFakeBee(parserContext: CafeFnContext) {
         }
     }
 
+    let purchaseCounter = 0
     const stamps: Stamp[] = parserContext.options['initial-stamp'] ? [createStamp('200500', 22)] : []
+
+    if (parserContext.options['purge']) {
+        setInterval(() => {
+            logger.info('♻️  Purging stamps ♻️')
+            purchaseCounter = 0
+            Arrays.empty(stamps)
+        }, Dates.seconds(90))
+    }
 
     const app = new Koa()
     app.use(async (context, next) => {
-        logger.info(`${context.request.method} ${context.request.url}`)
+        if (context.request.method === 'GET') {
+            logger.info(`${chalk.bgWhite.black(` ${context.request.method} `)} ${context.request.url}`)
+        } else if (context.request.method === 'POST') {
+            logger.info(`${chalk.bgGreen.black(` ${context.request.method} `)} ${chalk.green(context.request.url)}`)
+        } else if (context.request.method === 'PATCH') {
+            logger.info(`${chalk.bgBlue.black(` ${context.request.method} `)} ${chalk.blue(context.request.url)}`)
+        } else {
+            logger.info(`${context.request.method} ${context.request.url}`)
+        }
         await next()
     })
-    if (parserContext.options.delay) {
+    if (parserContext.options.throttling) {
         app.use(async (_, next) => {
-            await System.sleepMillis(Random.inclusiveInt(0, Types.asNumber(parserContext.options.delay)))
+            await System.sleepMillis(Random.inclusiveInt(0, Types.asNumber(parserContext.options.throttling) / 2))
             await next()
         })
     }
@@ -129,17 +159,27 @@ function runFakeBee(parserContext: CafeFnContext) {
         context.body = { batchID: context.params.id }
     })
     router.post('/stamps/:amount/:depth', async (context: Koa.Context) => {
+        if (parserContext.options['detect-overpurchase'] && (stamps.length > 0 || purchaseCounter > 0)) {
+            logger.warn('⚠️  Detected postage overpurchase ⚠️')
+        }
+        purchaseCounter++
         if (parserContext.options['stuck-stamp']) {
             await System.sleepMillis(Dates.hours(100))
         }
         if (!parserContext.options['instant-stamp']) {
-            await System.sleepMillis(Dates.seconds(30))
+            await System.sleepMillis(Dates.seconds(20))
         }
         const stamp = createStamp(context.params.amount, context.params.depth)
         stamps.push(stamp)
         context.body = stamp
     })
     app.use(router.routes())
+    if (parserContext.options.throttling) {
+        app.use(async (_, next) => {
+            await System.sleepMillis(Random.inclusiveInt(0, Types.asNumber(parserContext.options.throttling) / 2))
+            await next()
+        })
+    }
     app.listen(1633)
     app.listen(1635)
     app.listen(11633)

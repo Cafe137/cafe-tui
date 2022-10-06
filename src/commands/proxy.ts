@@ -52,11 +52,10 @@ export function registerProxyCommand(parser: Parser) {
                 description: 'Enables periodical content reupload'
             })
             .withOption({
-                key: 'reupload-interval-ms',
-                type: 'number',
-                alias: 'i',
-                description: 'Reupload interval in milliseconds',
-                default: Dates.minutes(2)
+                key: 'quick',
+                type: 'boolean',
+                alias: 'q',
+                description: 'Postage check is very frequent'
             })
             .withOption({
                 key: 'preset0',
@@ -124,10 +123,16 @@ export function registerProxyCommand(parser: Parser) {
                     env.CID_SUBDOMAINS = 'true'
                 }
                 if (reupload) {
-                    env.REUPLOAD_PERIOD = Types.asNumber(context.options['reupload-interval-ms']).toString()
+                    env.REUPLOAD_PERIOD = Dates.minutes(2).toString()
                 }
                 if (context.options['debug']) {
                     env.LOG_LEVEL = 'debug'
+                }
+                if (context.options['quick']) {
+                    env.POSTAGE_REFRESH_PERIOD = Dates.seconds(2).toString()
+                    if (reupload) {
+                        env.REUPLOAD_PERIOD = Dates.seconds(2).toString()
+                    }
                 }
                 console.log('Starting with env:', env)
                 System.runProcess(
