@@ -39,6 +39,12 @@ export function registerFakeBeeCommand(parser: Parser) {
                 conflicts: 'instant-stamp'
             })
             .withOption({
+                key: 'buggy-stamp',
+                type: 'boolean',
+                description: 'Stamps 404 when buying',
+                alias: 'b'
+            })
+            .withOption({
                 key: 'initial-stamp',
                 alias: 'S',
                 description: 'Create initial stamp',
@@ -94,7 +100,8 @@ function runFakeBee(parserContext: CafeFnContext) {
             depth: Numbers.parseIntOrThrow(depth),
             bucketDepth: 16,
             utilization: 0,
-            batchTTL: parserContext.options.expire ? 1 : Dates.hours(24)
+            batchTTL: parserContext.options.expire ? 1 : Dates.hours(24),
+            validFrom: Date.now() + Dates.seconds(40)
         }
     }
 
@@ -186,10 +193,21 @@ function runFakeBee(parserContext: CafeFnContext) {
         context.body = 'OK'
     })
     router.get('/stamps', (context: Koa.Context) => {
-        context.body = { stamps }
+        context.body = { stamps: stamps.map(mapStamp) }
     })
     router.get('/stamps/:id', (context: Koa.Context) => {
-        context.body = stamps.find(stamp => stamp.batchID === context.params.id)
+        const stamp = stamps.find(stamp => stamp.batchID === context.params.id)
+        if (!stamp) {
+            context.status = 404
+            context.body = 'Not Found'
+            return
+        }
+        if (parserContext.options['buggy-stamp'] && stamp.validFrom && stamp.validFrom > Date.now()) {
+            context.status = 404
+            context.body = 'Not Found'
+            return
+        }
+        context.body = mapStamp(stamp)
     })
     router.post('/chunks', (context: Koa.Context) => {
         context.body = { reference: Strings.randomHex(64) }
@@ -227,4 +245,11 @@ function runFakeBee(parserContext: CafeFnContext) {
     app.listen(1635)
     app.listen(11633)
     app.listen(11635)
+}
+
+function mapStamp(stamp: Stamp): Stamp {
+    if (stamp.validFrom) {
+        stamp.usable = Date.now() > stamp.validFrom
+    }
+    return stamp
 }

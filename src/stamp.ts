@@ -9,6 +9,7 @@ export interface Stamp {
     bucketDepth: number
     utilization: number
     batchTTL: number
+    validFrom?: number
 }
 
 export async function findPostageStamp(beeDebugApiUrl: string): Promise<Stamp> {
