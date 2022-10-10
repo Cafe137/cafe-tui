@@ -57,6 +57,12 @@ export function registerFakeBeeCommand(parser: Parser) {
                 alias: 'd'
             })
             .withOption({
+                key: 'on-off',
+                type: 'boolean',
+                description: 'Turn server on/off periodically',
+                alias: 'o'
+            })
+            .withOption({
                 key: 'chaos',
                 type: 'number',
                 description: '100 = all requests fail, 0 = no fail, 50 = 50% fail',
@@ -111,11 +117,35 @@ function runFakeBee(parserContext: CafeFnContext) {
             logger.info(`${chalk.bgGreen.black(` ${context.request.method} `)} ${chalk.green(context.request.url)}`)
         } else if (context.request.method === 'PATCH') {
             logger.info(`${chalk.bgBlue.black(` ${context.request.method} `)} ${chalk.blue(context.request.url)}`)
+        } else if (context.request.method === 'PUT') {
+            logger.info(
+                `${chalk.bgYellowBright.black(` ${context.request.method} `)} ${chalk.blue(context.request.url)}`
+            )
         } else {
             logger.info(`${context.request.method} ${context.request.url}`)
         }
         await next()
     })
+    if (parserContext.options['on-off']) {
+        let healthy = true
+        setInterval(() => {
+            if (healthy && Random.chance(0.33)) {
+                healthy = false
+                logger.info(chalk.bgCyanBright.black(' Server is unhealthy from now on '))
+            } else if (!healthy) {
+                healthy = true
+                logger.info(chalk.bgCyanBright.black(' Server is healthy from now on '))
+            }
+        }, Dates.seconds(20))
+        app.use(async (context, next) => {
+            if (!healthy) {
+                context.status = 503
+                context.body = 'Service Unavailable'
+                return
+            }
+            await next()
+        })
+    }
     if (parserContext.options.throttling) {
         app.use(async (_, next) => {
             await System.sleepMillis(Random.inclusiveInt(0, Types.asNumber(parserContext.options.throttling) / 2))
@@ -140,7 +170,20 @@ function runFakeBee(parserContext: CafeFnContext) {
         context.body = { overlay: Strings.randomHex(64) }
     })
     router.get('/pins', (context: Koa.Context) => {
-        context.body = { references: [] }
+        context.body = {
+            references: Arrays.pickWeighted(
+                [[], [Strings.randomHex(64)], [Strings.randomHex(64), Strings.randomHex(64)]],
+                [3, 1, 1]
+            )
+        }
+    })
+    router.get('/stewardship/:reference', (context: Koa.Context) => {
+        context.body = {
+            isRetrievable: Random.chance(0.5)
+        }
+    })
+    router.put('/stewardship/:reference', (context: Koa.Context) => {
+        context.body = 'OK'
     })
     router.get('/stamps', (context: Koa.Context) => {
         context.body = { stamps }
