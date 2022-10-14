@@ -3,6 +3,7 @@ import { Arrays, Types } from 'cafe-utility'
 
 export interface Stamp {
     batchID: string
+    exists: boolean
     usable: boolean
     amount: string
     depth: number
@@ -20,6 +21,7 @@ export async function findPostageStamp(beeDebugApiUrl: string): Promise<Stamp> {
         const stamp = Types.asObject(x)
         return {
             batchID: Types.asString(stamp.batchID),
+            exists: Types.asBoolean(stamp.exists),
             usable: Types.asBoolean(stamp.usable),
             amount: Types.asString(stamp.amount),
             depth: Types.asNumber(stamp.depth),

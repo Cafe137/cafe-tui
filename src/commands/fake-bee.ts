@@ -95,6 +95,7 @@ function runFakeBee(parserContext: CafeFnContext) {
     function createStamp(amount: unknown, depth: unknown): Stamp {
         return {
             batchID: Strings.randomHex(64),
+            exists: true,
             usable: !parserContext.options['never-usable'],
             amount: Types.asString(amount),
             depth: Numbers.parseIntOrThrow(depth),
@@ -117,6 +118,16 @@ function runFakeBee(parserContext: CafeFnContext) {
     }
 
     const app = new Koa()
+    app.use(async (context, next) => {
+        context.set('Access-Control-Allow-Origin', '*')
+        context.set('Access-Control-Allow-Credentials', 'true')
+        context.set(
+            'Access-Control-Allow-Headers',
+            'Content-Type, Content-Length, Authorization, Accept, X-Requested-With, swarm-postage-batch-id'
+        )
+        context.set('Access-Control-Allow-Methods', 'POST, GET, PUT, DELETE, PATCH, OPTIONS')
+        await next()
+    })
     app.use(async (context, next) => {
         if (context.request.method === 'GET') {
             logger.info(`${chalk.bgWhite.black(` ${context.request.method} `)} ${context.request.url}`)
@@ -170,8 +181,88 @@ function runFakeBee(parserContext: CafeFnContext) {
         })
     }
     const router = new Router()
+    router.options('/(.*)', (context: Koa.Context) => {
+        context.body = 'OK'
+    })
+    router.get('/', (context: Koa.Context) => {
+        context.body = 'Ethereum Swarm Bee'
+    })
     router.get('/health', (context: Koa.Context) => {
-        context.body = { status: 'ok' }
+        context.body = {
+            status: 'ok',
+            version: '1.9.0',
+            apiVersion: '1.0.0',
+            debugApiVersion: '1.0.0'
+        }
+    })
+    router.get('/node', (context: Koa.Context) => {
+        context.body = {
+            beeMode: 'light',
+            gatewayMode: true,
+            chequebookEnabled: true,
+            swapEnabled: true
+        }
+    })
+    router.get('/balances', (context: Koa.Context) => {
+        context.body = { balances: [] }
+    })
+    router.get('/settlements', (context: Koa.Context) => {
+        context.body = {
+            totalReceived: 0,
+            totalSent: 0,
+            settlements: []
+        }
+    })
+    router.get('/wallet', (context: Koa.Context) => {
+        context.body = {
+            bzz: '1000000000000000000',
+            xDai: '1000000000000000000',
+            chainID: 0,
+            contractAddress: '36b7efd913ca4cf880b8eeac5093fa27b0825906'
+        }
+    })
+    router.get('/peers', (context: Koa.Context) => {
+        context.body = {
+            peers: [
+                {
+                    address: '36b7efd913ca4cf880b8eeac5093fa27b0825906c600685b6abdd6566e6cfe8f'
+                }
+            ]
+        }
+    })
+    router.get('/chequebook/address', (context: Koa.Context) => {
+        context.body = {
+            chequebookAddress: '36b7efd913ca4cf880b8eeac5093fa27b0825906'
+        }
+    })
+    router.get('/chequebook/cheque', (context: Koa.Context) => {
+        context.body = {
+            lastcheques: []
+        }
+    })
+    router.get('/chequebook/balance', (context: Koa.Context) => {
+        context.body = {
+            totalBalance: '1000000000000000000',
+            availableBalance: '1000000000000000000'
+        }
+    })
+    router.get('/topology', (context: Koa.Context) => {
+        context.body = {
+            baseAddr: '36b7efd913ca4cf880b8eeac5093fa27b0825906c600685b6abdd6566e6cfe8f',
+            population: 1000,
+            connected: 100,
+            timestamp: 'string',
+            nnLowWatermark: 0,
+            depth: 6
+        }
+    })
+    router.get('/chainstate', (context: Koa.Context) => {
+        context.body = {
+            chainTip: 0,
+            block: 0,
+            totalAmount: '1000000000000000000',
+            currentPrice: '1000000000000000000'
+        }
     })
     router.get('/addresses', (context: Koa.Context) => {
         context.body = { overlay: Strings.randomHex(64) }
@@ -210,6 +301,10 @@ function runFakeBee(parserContext: CafeFnContext) {
         context.body = mapStamp(stamp)
     })
     router.post('/chunks', (context: Koa.Context) => {
+        context.body = { reference: Strings.randomHex(64) }
+    })
+    router.post('/bytes', (context: Koa.Context) => {
+        context.set('swarm-tag', '42')
         context.body = { reference: Strings.randomHex(64) }
     })
     router.post('/bzz', (context: Koa.Context) => {
