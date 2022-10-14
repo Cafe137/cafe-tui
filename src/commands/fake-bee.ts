@@ -25,6 +25,12 @@ export function registerFakeBeeCommand(parser: Parser) {
                 alias: 'e'
             })
             .withOption({
+                key: 'full',
+                type: 'boolean',
+                description: 'Display high usage for stamps',
+                alias: 'f'
+            })
+            .withOption({
                 key: 'instant-stamp',
                 type: 'boolean',
                 description: 'Create stamps instantly',
@@ -85,6 +91,12 @@ export function registerFakeBeeCommand(parser: Parser) {
                 default: 0,
                 alias: 't'
             })
+            .withOption({
+                key: 'long-operations',
+                type: 'boolean',
+                description: 'Topup and dilute take longer',
+                alias: 'l'
+            })
             .withFn(async context => {
                 runFakeBee(context)
             })
@@ -100,7 +112,7 @@ function runFakeBee(parserContext: CafeFnContext) {
             amount: Types.asString(amount),
             depth: Numbers.parseIntOrThrow(depth),
             bucketDepth: 16,
-            utilization: 0,
+            utilization: parserContext.options.full ? 50 : 0,
             batchTTL: parserContext.options.expire ? 1 : Dates.hours(24),
             validFrom: Date.now() + Dates.seconds(40)
         }
@@ -312,6 +324,15 @@ function runFakeBee(parserContext: CafeFnContext) {
         context.body = { reference: Strings.randomHex(64) }
     })
     router.patch('/stamps/topup/:id/:amount', async (context: Koa.Context) => {
+        if (parserContext.options['long-operations']) {
+            await System.sleepMillis(Dates.seconds(20))
+        }
+        context.body = { batchID: context.params.id }
+    })
+    router.patch('/stamps/dilute/:id/:depth', async (context: Koa.Context) => {
+        if (parserContext.options['long-operations']) {
+            await System.sleepMillis(Dates.seconds(20))
+        }
         context.body = { batchID: context.params.id }
     })
     router.post('/stamps/:amount/:depth', async (context: Koa.Context) => {
