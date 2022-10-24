@@ -3,6 +3,7 @@ import { CafeFnContext, Command, Parser } from 'cafe-args'
 import { Arrays, Dates, Logger, Numbers, Random, Strings, System, Types } from 'cafe-utility'
 import chalk from 'chalk'
 import Koa from 'koa'
+import bodyParser from 'koa-bodyparser'
 import { Stamp } from '../stamp'
 
 const logger = Logger.create('[Bee]')
@@ -130,6 +131,7 @@ function runFakeBee(parserContext: CafeFnContext) {
     }
 
     const app = new Koa()
+    app.use(bodyParser())
     app.use(async (context, next) => {
         context.set('Access-Control-Allow-Origin', '*')
         context.set('Access-Control-Allow-Credentials', 'true')
@@ -144,7 +146,11 @@ function runFakeBee(parserContext: CafeFnContext) {
         if (context.request.method === 'GET') {
             logger.info(`${chalk.bgWhite.black(` ${context.request.method} `)} ${context.request.url}`)
         } else if (context.request.method === 'POST') {
-            logger.info(`${chalk.bgGreen.black(` ${context.request.method} `)} ${chalk.green(context.request.url)}`)
+            if (context.request.body && context.request.body.method) {
+                logger.info(`${chalk.bgGreen.black(` ${context.request.method} `)} rpc:${context.request.body.method}`)
+            } else {
+                logger.info(`${chalk.bgGreen.black(` ${context.request.method} `)} ${chalk.green(context.request.url)}`)
+            }
         } else if (context.request.method === 'PATCH') {
             logger.info(`${chalk.bgBlue.black(` ${context.request.method} `)} ${chalk.blue(context.request.url)}`)
         } else if (context.request.method === 'PUT') {
@@ -198,6 +204,64 @@ function runFakeBee(parserContext: CafeFnContext) {
     })
     router.get('/', (context: Koa.Context) => {
         context.body = 'Ethereum Swarm Bee'
+    })
+    router.post('/', (context: Koa.Context) => {
+        const { id, method } = Types.asObject(context.request.body)
+        if (method === 'eth_chainId') {
+            context.body = {
+                jsonrpc: '2.0',
+                id,
+                result: '0x1'
+            }
+        } else if (method === 'net_version') {
+            context.body = {
+                jsonrpc: '2.0',
+                id,
+                result: '1'
+            }
+        } else if (method === 'eth_call') {
+            context.body = {
+                jsonrpc: '2.0',
+                id,
+                result: '0x00000000000000000000000000000000000000000000014a314d9ff9b20b9800'
+            }
+        } else if (method === 'eth_getBalance') {
+            context.body = {
+                jsonrpc: '2.0',
+                id,
+                result: '0x0c1a2fe84e3113d7b'
+            }
+        }
+    })
+    router.get('/info', (context: Koa.Context) => {
+        context.body = {
+            name: 'bee-desktop',
+            version: '1.9.0',
+            autoUpdateEnabled: false
+        }
+    })
+    router.get('/price', (context: Koa.Context) => {
+        context.body = 0.45634
+    })
+    router.get('/config', (context: Koa.Context) => {
+        context.body = {
+            'api-addr': '0.0.0.0:1633',
+            'debug-api-addr': '127.0.0.1:1635',
+            'debug-api-enable': 'true',
+            'swap-enable': true,
+            'swap-initial-deposit': '1000000000000000',
+            mainnet: true,
+            'full-node': 'false',
+            'chain-enable': 'false',
+            'cors-allowed-origins': '*',
+            'use-postage-snapshot': 'true',
+            'resolver-options': 'https://cloudflare-eth.com',
+            'data-dir': '/Users/aron/Library/Application Support/Swarm Desktop/data-dir',
+            password: 'Test',
+            'swap-endpoint': 'http://localhost:1633',
+            verbosity: 'trace',
+            bootnode: '/dnsaddr/mainnet.ethswarm.org'
+        }
     })
     router.get('/health', (context: Koa.Context) => {
         context.body = {
@@ -277,7 +341,13 @@ function runFakeBee(parserContext: CafeFnContext) {
         }
     })
     router.get('/addresses', (context: Koa.Context) => {
-        context.body = { overlay: Strings.randomHex(64) }
+        context.body = {
+            overlay: '36b7efd913ca4cf880b8eeac5093fa27b0825906c600685b6abdd6566e6cfe8f',
+            underlay: ['/ip4/127.0.0.1/tcp/1634/p2p/16Uiu2HAmTm17toLDaPYzRyjKn27iCB76yjKnJ5DjQXneFmifFvaX'],
+            ethereum: '36b7efd913ca4cf880b8eeac5093fa27b0825906',
+            publicKey: '02ab7473879005929d10ce7d4f626412dad9fe56b0a6622038931d26bd79abf0a4',
+            pssPublicKey: '02ab7473879005929d10ce7d4f626412dad9fe56b0a6622038931d26bd79abf0a4'
+        }
     })
     router.get('/pins', (context: Koa.Context) => {
         context.body = {
@@ -361,6 +431,7 @@ function runFakeBee(parserContext: CafeFnContext) {
     app.listen(1635)
     app.listen(11633)
     app.listen(11635)
+    app.listen(3054)
 }
 
 function mapStamp(stamp: Stamp): Stamp {
