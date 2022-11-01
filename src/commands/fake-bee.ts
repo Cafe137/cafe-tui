@@ -39,6 +39,12 @@ export function registerFakeBeeCommand(parser: Parser) {
                 conflicts: 'stuck-stamp'
             })
             .withOption({
+                key: 'instant-usable',
+                type: 'boolean',
+                description: 'Stamps are usable instantly',
+                alias: 'I'
+            })
+            .withOption({
                 key: 'stuck-stamp',
                 type: 'boolean',
                 description: 'Never complete stamp buy',
@@ -98,6 +104,13 @@ export function registerFakeBeeCommand(parser: Parser) {
                 description: 'Topup and dilute take longer',
                 alias: 'l'
             })
+            .withOption({
+                key: 'desktop',
+                type: 'boolean',
+                default: true,
+                description: 'Mock desktop API',
+                alias: 'D'
+            })
             .withFn(async context => {
                 runFakeBee(context)
             })
@@ -113,9 +126,9 @@ function runFakeBee(parserContext: CafeFnContext) {
             amount: Types.asString(amount),
             depth: Numbers.parseIntOrThrow(depth),
             bucketDepth: 16,
-            utilization: parserContext.options.full ? 50 : 0,
+            utilization: parserContext.options.full ? 62 : 0,
             batchTTL: parserContext.options.expire ? 1 : Dates.hours(24),
-            validFrom: Date.now() + Dates.seconds(40)
+            validFrom: parserContext.options['instant-usable'] ? Date.now() : Date.now() + Dates.seconds(40)
         }
     }
 
@@ -137,7 +150,7 @@ function runFakeBee(parserContext: CafeFnContext) {
         context.set('Access-Control-Allow-Credentials', 'true')
         context.set(
             'Access-Control-Allow-Headers',
-            'Content-Type, Content-Length, Authorization, Accept, X-Requested-With, swarm-postage-batch-id'
+            'Content-Type, Content-Length, Authorization, Accept, X-Requested-With, swarm-postage-batch-id, swarm-collection, swarm-index-document'
         )
         context.set('Access-Control-Allow-Methods', 'POST, GET, PUT, DELETE, PATCH, OPTIONS')
         await next()
@@ -233,36 +246,38 @@ function runFakeBee(parserContext: CafeFnContext) {
             }
         }
     })
-    router.get('/info', (context: Koa.Context) => {
-        context.body = {
-            name: 'bee-desktop',
-            version: '1.9.0',
-            autoUpdateEnabled: false
-        }
-    })
-    router.get('/price', (context: Koa.Context) => {
-        context.body = 0.45634
-    })
-    router.get('/config', (context: Koa.Context) => {
-        context.body = {
-            'api-addr': '0.0.0.0:1633',
-            'debug-api-addr': '127.0.0.1:1635',
-            'debug-api-enable': 'true',
-            'swap-enable': true,
-            'swap-initial-deposit': '1000000000000000',
-            mainnet: true,
-            'full-node': 'false',
-            'chain-enable': 'false',
-            'cors-allowed-origins': '*',
-            'use-postage-snapshot': 'true',
-            'resolver-options': 'https://cloudflare-eth.com',
-            'data-dir': '/Users/aron/Library/Application Support/Swarm Desktop/data-dir',
-            password: 'Test',
-            'swap-endpoint': 'http://localhost:1633',
-            verbosity: 'trace',
-            bootnode: '/dnsaddr/mainnet.ethswarm.org'
-        }
-    })
+    if (parserContext.options.desktop) {
+        router.get('/info', (context: Koa.Context) => {
+            context.body = {
+                name: 'bee-desktop',
+                version: '1.9.0',
+                autoUpdateEnabled: false
+            }
+        })
+        router.get('/price', (context: Koa.Context) => {
+            context.body = 0.45634
+        })
+        router.get('/config', (context: Koa.Context) => {
+            context.body = {
+                'api-addr': '0.0.0.0:1633',
+                'debug-api-addr': '127.0.0.1:1635',
+                'debug-api-enable': 'true',
+                'swap-enable': true,
+                'swap-initial-deposit': '1000000000000000',
+                mainnet: true,
+                'full-node': 'false',
+                'chain-enable': 'false',
+                'cors-allowed-origins': '*',
+                'use-postage-snapshot': 'true',
+                'resolver-options': 'https://cloudflare-eth.com',
+                'data-dir': '/Users/aron/Library/Application Support/Swarm Desktop/data-dir',
+                password: 'Test',
+                'swap-endpoint': 'http://localhost:1633',
+                verbosity: 'trace',
+                bootnode: '/dnsaddr/mainnet.ethswarm.org'
+            }
+        })
+    }
     router.get('/health', (context: Koa.Context) => {
         context.body = {
             status: 'ok',
@@ -431,7 +446,9 @@ function runFakeBee(parserContext: CafeFnContext) {
     app.listen(1635)
     app.listen(11633)
     app.listen(11635)
-    app.listen(3054)
+    if (parserContext.options.desktop) {
+        app.listen(3054)
+    }
 }
 
 function mapStamp(stamp: Stamp): Stamp {

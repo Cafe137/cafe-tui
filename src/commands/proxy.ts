@@ -103,8 +103,8 @@ export function registerProxyCommand(parser: Parser) {
                 const topup = context.options['topup'] || context.options.preset1
                 const dilute = context.options['dilute'] || context.options.preset2
                 const hardcoded = context.options['hardcoded'] || context.options.preset3
-                if ([autobuy, topup, hardcoded, dilute].filter(x => x).length > 1) {
-                    throw Error('Exclusive options: autobuy, topup, hardcoded, dilute')
+                if ([autobuy, hardcoded].filter(x => x).length > 1) {
+                    throw Error('Exclusive options: autobuy, hardcoded')
                 }
                 const ens = context.options['ens'] || all
                 const cid = context.options['cid'] || all
