@@ -5,8 +5,14 @@ import chalk from 'chalk'
 import Koa from 'koa'
 import bodyParser from 'koa-bodyparser'
 import { Stamp } from '../stamp'
+import { Token } from '../token'
 
 const logger = Logger.create('[Bee]')
+
+const state = {
+    requestToFail: '',
+    chequebookBalance: Token.fromNumber(137)
+}
 
 export function registerFakeBeeCommand(parser: Parser) {
     parser.addCommand(
@@ -159,7 +165,7 @@ function runFakeBee(parserContext: CafeFnContext) {
         if (context.request.method === 'GET') {
             logger.info(`${chalk.bgWhite.black(` ${context.request.method} `)} ${context.request.url}`)
         } else if (context.request.method === 'POST') {
-            if (context.request.body && context.request.body.method) {
+            if (context.request.url === '/' && context.request.body && context.request.body.method) {
                 logger.info(`${chalk.bgGreen.black(` ${context.request.method} `)} rpc:${context.request.body.method}`)
             } else {
                 logger.info(`${chalk.bgGreen.black(` ${context.request.method} `)} ${chalk.green(context.request.url)}`)
@@ -174,6 +180,21 @@ function runFakeBee(parserContext: CafeFnContext) {
             logger.info(`${context.request.method} ${context.request.url}`)
         }
         await next()
+    })
+    app.use(async (context, next) => {
+        if (
+            state.requestToFail &&
+            `${context.request.method} ${context.request.url}`
+                .toLowerCase()
+                .startsWith(state.requestToFail.toLowerCase())
+        ) {
+            context.status = 503
+            context.body = 'Service Unavailable'
+            state.requestToFail = ''
+            return
+        } else {
+            await next()
+        }
     })
     if (parserContext.options['on-off']) {
         let healthy = true
@@ -217,6 +238,13 @@ function runFakeBee(parserContext: CafeFnContext) {
     })
     router.get('/', (context: Koa.Context) => {
         context.body = 'Ethereum Swarm Bee'
+    })
+    router.post('/meta', (context: Koa.Context) => {
+        const body = Types.asObject(context.request.body)
+        const method = Types.asString(body.method)
+        const url = Types.asString(body.url)
+        state.requestToFail = `${method} ${url}`
+        context.body = 'OK'
     })
     router.post('/', (context: Koa.Context) => {
         const { id, method } = Types.asObject(context.request.body)
@@ -333,9 +361,19 @@ function runFakeBee(parserContext: CafeFnContext) {
     })
     router.get('/chequebook/balance', (context: Koa.Context) => {
         context.body = {
-            totalBalance: '1000000000000000000',
-            availableBalance: '1000000000000000000'
+            totalBalance: state.chequebookBalance.toString(),
+            availableBalance: state.chequebookBalance.toString()
         }
+    })
+    router.post('/chequebook/deposit', (context: Koa.Context) => {
+        const amount = Token.fromString(Types.asString(context.request.query.amount))
+        state.chequebookBalance = state.chequebookBalance.plusToken(amount)
+        context.body = { transactionHash: Strings.randomHex(64) }
+    })
+    router.post('/chequebook/withdraw', (context: Koa.Context) => {
+        const amount = Token.fromString(Types.asString(context.request.query.amount))
+        state.chequebookBalance = state.chequebookBalance.minusToken(amount)
+        context.body = { transactionHash: Strings.randomHex(64) }
     })
     router.get('/topology', (context: Koa.Context) => {
         context.body = {
