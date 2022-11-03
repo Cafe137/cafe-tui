@@ -3,6 +3,7 @@
 import { createParser } from 'cafe-args'
 import { Types } from 'cafe-utility'
 import { exit } from 'process'
+import { registerApiMonitorCommand } from './commands/api-monitor'
 import { registerBeeCommand } from './commands/bee'
 import { registerFailRequestCommand } from './commands/fail-request'
 import { registerFakeBeeCommand } from './commands/fake-bee'
@@ -30,6 +31,7 @@ async function main() {
     registerNetworkCommand(parser)
     registerProjectCommand(parser)
     registerProxyCliCommand(parser)
+    registerApiMonitorCommand(parser)
     registerFailRequestCommand(parser)
     const result = await parser.parse(process.argv.slice(2))
     if (Types.isString(result)) {
