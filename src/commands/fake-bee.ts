@@ -10,8 +10,10 @@ import { Token } from '../token'
 const logger = Logger.create('[Bee]')
 
 const state = {
+    ready: true,
     requestToFail: '',
-    chequebookBalance: Token.fromNumber(137)
+    chequebookBalance: Token.fromNumber(137),
+    stakedBalance: Token.fromNumber(0)
 }
 
 export function registerFakeBeeCommand(parser: Parser) {
@@ -246,13 +248,18 @@ function runFakeBee(parserContext: CafeFnContext) {
         state.requestToFail = `${method} ${url}`
         context.body = 'OK'
     })
+    router.post('/meta/readiness', (context: Koa.Context) => {
+        const body = Types.asObject(context.request.body)
+        state.ready = Types.asBoolean(body.ready)
+        context.body = 'OK'
+    })
     router.post('/', (context: Koa.Context) => {
         const { id, method } = Types.asObject(context.request.body)
         if (method === 'eth_chainId') {
             context.body = {
                 jsonrpc: '2.0',
                 id,
-                result: '0x1'
+                result: '0x64'
             }
         } else if (method === 'net_version') {
             context.body = {
@@ -314,6 +321,10 @@ function runFakeBee(parserContext: CafeFnContext) {
             debugApiVersion: '1.0.0'
         }
     })
+    router.get('/readiness', (context: Koa.Context) => {
+        context.status = state.ready ? 200 : 500
+        context.body = { status: state.ready }
+    })
     router.get('/node', (context: Koa.Context) => {
         context.body = {
             beeMode: 'light',
@@ -374,6 +385,14 @@ function runFakeBee(parserContext: CafeFnContext) {
         const amount = Token.fromString(Types.asString(context.request.query.amount))
         state.chequebookBalance = state.chequebookBalance.minusToken(amount)
         context.body = { transactionHash: Strings.randomHex(64) }
+    })
+    router.get('/stake', (context: Koa.Context) => {
+        context.body = { stakedAmount: state.stakedBalance.toString() }
+    })
+    router.post('/stake/deposit/:amount', (context: Koa.Context) => {
+        const amount = Token.fromString(Types.asString(context.params.amount))
+        state.stakedBalance = state.stakedBalance.plusToken(amount)
+        context.body = { stakedAmount: state.stakedBalance.toString() }
     })
     router.get('/topology', (context: Koa.Context) => {
         context.body = {
