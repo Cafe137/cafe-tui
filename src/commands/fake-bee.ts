@@ -1,6 +1,6 @@
 import Router from '@koa/router'
 import { CafeFnContext, Command, Parser } from 'cafe-args'
-import { Arrays, Dates, Logger, Numbers, Random, Strings, System, Types } from 'cafe-utility'
+import { Arrays, Dates, Logger, Numbers, Objects, Random, Strings, System, Types } from 'cafe-utility'
 import chalk from 'chalk'
 import Koa from 'koa'
 import bodyParser from 'koa-bodyparser'
@@ -10,10 +10,32 @@ import { Token } from '../token'
 const logger = Logger.create('[Bee]')
 
 const state = {
-    ready: true,
-    requestToFail: '',
     chequebookBalance: Token.fromNumber(137),
-    stakedBalance: Token.fromNumber(0)
+    stakedBalance: Token.fromNumber(0),
+    toggles: {
+        readiness: true,
+        deposit: true,
+        withdraw: true,
+        getDesktopConfiguration: true
+    },
+    desktopConfiguration: {
+        'api-addr': '0.0.0.0:1633',
+        'debug-api-addr': '127.0.0.1:1635',
+        'debug-api-enable': 'true',
+        'swap-enable': true,
+        'swap-initial-deposit': '1000000000000000',
+        mainnet: true,
+        'full-node': 'false',
+        'chain-enable': 'false',
+        'cors-allowed-origins': '*',
+        'use-postage-snapshot': 'true',
+        'resolver-options': 'https://cloudflare-eth.com',
+        'data-dir': '/Users/aron/Library/Application Support/Swarm Desktop/data-dir',
+        password: 'Test',
+        'swap-endpoint': 'http://localhost:1633',
+        verbosity: 'trace',
+        bootnode: '/dnsaddr/mainnet.ethswarm.org'
+    }
 }
 
 export function registerFakeBeeCommand(parser: Parser) {
@@ -183,21 +205,6 @@ function runFakeBee(parserContext: CafeFnContext) {
         }
         await next()
     })
-    app.use(async (context, next) => {
-        if (
-            state.requestToFail &&
-            `${context.request.method} ${context.request.url}`
-                .toLowerCase()
-                .startsWith(state.requestToFail.toLowerCase())
-        ) {
-            context.status = 503
-            context.body = 'Service Unavailable'
-            state.requestToFail = ''
-            return
-        } else {
-            await next()
-        }
-    })
     if (parserContext.options['on-off']) {
         let healthy = true
         setInterval(() => {
@@ -241,17 +248,13 @@ function runFakeBee(parserContext: CafeFnContext) {
     router.get('/', (context: Koa.Context) => {
         context.body = 'Ethereum Swarm Bee'
     })
-    router.post('/meta', (context: Koa.Context) => {
+    router.put('/meta/toggles', (context: Koa.Context) => {
         const body = Types.asObject(context.request.body)
-        const method = Types.asString(body.method)
-        const url = Types.asString(body.url)
-        state.requestToFail = `${method} ${url}`
-        context.body = 'OK'
-    })
-    router.post('/meta/readiness', (context: Koa.Context) => {
-        const body = Types.asObject(context.request.body)
-        state.ready = Types.asBoolean(body.ready)
-        context.body = 'OK'
+        const objectPath = Types.asString(body.objectPath)
+        const newValue =
+            body.newValue === 'true' ? true : body.newValue === 'false' ? false : Types.asString(body.newValue)
+        Objects.setDeep(state, objectPath, newValue)
+        context.body = state
     })
     router.post('/', (context: Koa.Context) => {
         const { id, method } = Types.asObject(context.request.body)
@@ -293,24 +296,13 @@ function runFakeBee(parserContext: CafeFnContext) {
             context.body = 0.45634
         })
         router.get('/config', (context: Koa.Context) => {
-            context.body = {
-                'api-addr': '0.0.0.0:1633',
-                'debug-api-addr': '127.0.0.1:1635',
-                'debug-api-enable': 'true',
-                'swap-enable': true,
-                'swap-initial-deposit': '1000000000000000',
-                mainnet: true,
-                'full-node': 'false',
-                'chain-enable': 'false',
-                'cors-allowed-origins': '*',
-                'use-postage-snapshot': 'true',
-                'resolver-options': 'https://cloudflare-eth.com',
-                'data-dir': '/Users/aron/Library/Application Support/Swarm Desktop/data-dir',
-                password: 'Test',
-                'swap-endpoint': 'http://localhost:1633',
-                verbosity: 'trace',
-                bootnode: '/dnsaddr/mainnet.ethswarm.org'
+            if (!state.toggles.getDesktopConfiguration) {
+                context.status = 500
             }
+            context.body = state.desktopConfiguration
+        })
+        router.post('/swap', (context: Koa.Context) => {
+            context.body = 'OK'
         })
     }
     router.get('/health', (context: Koa.Context) => {
@@ -322,8 +314,8 @@ function runFakeBee(parserContext: CafeFnContext) {
         }
     })
     router.get('/readiness', (context: Koa.Context) => {
-        context.status = state.ready ? 200 : 500
-        context.body = { status: state.ready }
+        context.status = state.toggles.readiness ? 200 : 500
+        context.body = { status: state.toggles.readiness }
     })
     router.get('/node', (context: Koa.Context) => {
         context.body = {
@@ -377,11 +369,19 @@ function runFakeBee(parserContext: CafeFnContext) {
         }
     })
     router.post('/chequebook/deposit', (context: Koa.Context) => {
+        if (!state.toggles.deposit) {
+            context.status = 500
+            return
+        }
         const amount = Token.fromString(Types.asString(context.request.query.amount))
         state.chequebookBalance = state.chequebookBalance.plusToken(amount)
         context.body = { transactionHash: Strings.randomHex(64) }
     })
     router.post('/chequebook/withdraw', (context: Koa.Context) => {
+        if (!state.toggles.withdraw) {
+            context.status = 500
+            return
+        }
         const amount = Token.fromString(Types.asString(context.request.query.amount))
         state.chequebookBalance = state.chequebookBalance.minusToken(amount)
         context.body = { transactionHash: Strings.randomHex(64) }
