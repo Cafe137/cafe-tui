@@ -12,6 +12,7 @@ const logger = Logger.create('[Bee]')
 const state = {
     chequebookBalance: Token.fromNumber(137),
     stakedBalance: Token.fromNumber(0),
+    nextBatchId: Strings.randomHex(64),
     toggles: {
         readiness: true,
         deposit: true,
@@ -19,8 +20,8 @@ const state = {
         getDesktopConfiguration: true
     },
     desktopConfiguration: {
-        'api-addr': '0.0.0.0:1633',
-        'debug-api-addr': '127.0.0.1:1635',
+        'api-addr': 'localhost:1633',
+        'debug-api-addr': 'localhost:1635',
         'debug-api-enable': 'true',
         'swap-enable': true,
         'swap-initial-deposit': '1000000000000000',
@@ -149,8 +150,8 @@ export function registerFakeBeeCommand(parser: Parser) {
 
 function runFakeBee(parserContext: CafeFnContext) {
     function createStamp(amount: unknown, depth: unknown): Stamp {
-        return {
-            batchID: Strings.randomHex(64),
+        const stamp = {
+            batchID: state.nextBatchId,
             exists: true,
             usable: !parserContext.options['never-usable'],
             amount: Types.asString(amount),
@@ -160,6 +161,8 @@ function runFakeBee(parserContext: CafeFnContext) {
             batchTTL: parserContext.options.expire ? 1 : Dates.hours(24),
             validFrom: parserContext.options['instant-usable'] ? Date.now() : Date.now() + Dates.seconds(40)
         }
+        state.nextBatchId = Strings.randomHex(64)
+        return stamp
     }
 
     let purchaseCounter = 0
@@ -176,6 +179,7 @@ function runFakeBee(parserContext: CafeFnContext) {
     const app = new Koa()
     app.use(bodyParser())
     app.use(async (context, next) => {
+        context.set('Access-Control-Expose-Headers', 'Swarm-Tag')
         context.set('Access-Control-Allow-Origin', '*')
         context.set('Access-Control-Allow-Credentials', 'true')
         context.set(
@@ -248,6 +252,13 @@ function runFakeBee(parserContext: CafeFnContext) {
     router.get('/', (context: Koa.Context) => {
         context.body = 'Ethereum Swarm Bee'
     })
+    router.get('/meta/nextStamp', (context: Koa.Context) => {
+        context.body = state.nextBatchId
+    })
+    router.delete('/meta/stamps', (context: Koa.Context) => {
+        Arrays.empty(stamps)
+        context.body = 'OK'
+    })
     router.put('/meta/toggles', (context: Koa.Context) => {
         const body = Types.asObject(context.request.body)
         const objectPath = Types.asString(body.objectPath)
@@ -301,7 +312,13 @@ function runFakeBee(parserContext: CafeFnContext) {
             }
             context.body = state.desktopConfiguration
         })
+        router.post('/config', (context: Koa.Context) => {
+            context.body = state.desktopConfiguration
+        })
         router.post('/swap', (context: Koa.Context) => {
+            context.body = 'OK'
+        })
+        router.post('/restart', (context: Koa.Context) => {
             context.body = 'OK'
         })
     }
@@ -458,11 +475,11 @@ function runFakeBee(parserContext: CafeFnContext) {
         context.body = { reference: Strings.randomHex(64) }
     })
     router.post('/bytes', (context: Koa.Context) => {
-        context.set('swarm-tag', '42')
+        context.set('Swarm-Tag', '42')
         context.body = { reference: Strings.randomHex(64) }
     })
     router.post('/bzz', (context: Koa.Context) => {
-        context.set('swarm-tag', '42')
+        context.set('Swarm-Tag', '42')
         context.body = { reference: Strings.randomHex(64) }
     })
     router.patch('/stamps/topup/:id/:amount', async (context: Koa.Context) => {
