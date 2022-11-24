@@ -142,6 +142,13 @@ export function registerFakeBeeCommand(parser: Parser) {
                 description: 'Mock desktop API',
                 alias: 'D'
             })
+            .withOption({
+                key: 'ultra-light',
+                type: 'boolean',
+                default: false,
+                description: 'Start in ultra light mode',
+                alias: 'u'
+            })
             .withFn(async context => {
                 runFakeBee(context)
             })
@@ -167,6 +174,10 @@ function runFakeBee(parserContext: CafeFnContext) {
 
     let purchaseCounter = 0
     const stamps: Stamp[] = parserContext.options['initial-stamp'] ? [createStamp('200500', 22)] : []
+
+    if (parserContext.options['ultra-light']) {
+        state.desktopConfiguration['swap-endpoint'] = ''
+    }
 
     if (parserContext.options['purge']) {
         setInterval(() => {
@@ -313,6 +324,7 @@ function runFakeBee(parserContext: CafeFnContext) {
             context.body = state.desktopConfiguration
         })
         router.post('/config', (context: Koa.Context) => {
+            Objects.mergeDeep(state.desktopConfiguration, Types.asObject(context.request.body))
             context.body = state.desktopConfiguration
         })
         router.post('/swap', (context: Koa.Context) => {
@@ -336,7 +348,7 @@ function runFakeBee(parserContext: CafeFnContext) {
     })
     router.get('/node', (context: Koa.Context) => {
         context.body = {
-            beeMode: 'light',
+            beeMode: state.desktopConfiguration['swap-endpoint'] ? 'light' : 'ultra-light',
             gatewayMode: true,
             chequebookEnabled: true,
             swapEnabled: true
@@ -523,6 +535,7 @@ function runFakeBee(parserContext: CafeFnContext) {
     if (parserContext.options.desktop) {
         app.listen(3054)
     }
+    console.log('🐝 🚀 Up and running 🚀 🐝')
 }
 
 function mapStamp(stamp: Stamp): Stamp {
