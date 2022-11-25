@@ -263,6 +263,9 @@ function runFakeBee(parserContext: CafeFnContext) {
     router.get('/', (context: Koa.Context) => {
         context.body = 'Ethereum Swarm Bee'
     })
+    router.delete('/meta/server', () => {
+        process.exit(0)
+    })
     router.get('/meta/nextStamp', (context: Koa.Context) => {
         context.body = state.nextBatchId
     })
