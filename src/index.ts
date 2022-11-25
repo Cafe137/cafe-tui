@@ -7,6 +7,7 @@ import { registerApiMonitorCommand } from './commands/api-monitor'
 import { registerBeeCommand } from './commands/bee'
 import { registerFakeBeeCommand } from './commands/fake-bee'
 import { registerFakeBeeControllerCommand } from './commands/fake-bee-controller'
+import { registerGetUnzipCommand } from './commands/get-unzip'
 import { registerJestCommand } from './commands/jest'
 import { registerNetworkCommand } from './commands/network'
 import { registerProjectCommand } from './commands/project'
@@ -30,6 +31,7 @@ async function main() {
     registerFakeBeeCommand(parser)
     registerNetworkCommand(parser)
     registerProjectCommand(parser)
+    registerGetUnzipCommand(parser)
     registerProxyCliCommand(parser)
     registerApiMonitorCommand(parser)
     registerFakeBeeControllerCommand(parser)
