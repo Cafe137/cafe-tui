@@ -9,6 +9,7 @@ import { registerFakeBeeCommand } from './commands/fake-bee'
 import { registerFakeBeeControllerCommand } from './commands/fake-bee-controller'
 import { registerGetUnzipCommand } from './commands/get-unzip'
 import { registerJestCommand } from './commands/jest'
+import { registerMonkeyPatchCommand } from './commands/monkey-patch'
 import { registerNetworkCommand } from './commands/network'
 import { registerProjectCommand } from './commands/project'
 import { registerProxyCommand } from './commands/proxy'
@@ -34,6 +35,7 @@ async function main() {
     registerGetUnzipCommand(parser)
     registerProxyCliCommand(parser)
     registerApiMonitorCommand(parser)
+    registerMonkeyPatchCommand(parser)
     registerFakeBeeControllerCommand(parser)
     const result = await parser.parse(process.argv.slice(2))
     if (Types.isString(result)) {
