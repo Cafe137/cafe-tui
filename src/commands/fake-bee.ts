@@ -149,6 +149,12 @@ export function registerFakeBeeCommand(parser: Parser) {
                 description: 'Start in ultra light mode',
                 alias: 'u'
             })
+            .withOption({
+                key: 'version',
+                description: 'Reported Bee version',
+                default: '1.9.0-13a47043',
+                alias: 'v'
+            })
             .withFn(async context => {
                 runFakeBee(context)
             })
@@ -340,7 +346,7 @@ function runFakeBee(parserContext: CafeFnContext) {
     router.get('/health', (context: Koa.Context) => {
         context.body = {
             status: 'ok',
-            version: '1.9.0',
+            version: parserContext.options.version,
             apiVersion: '1.0.0',
             debugApiVersion: '1.0.0'
         }
