@@ -14,6 +14,7 @@ const state = {
     stakedBalance: Token.fromNumber(0),
     nextBatchId: Strings.randomHex(64),
     toggles: {
+        health: true,
         readiness: true,
         deposit: true,
         withdraw: true,
@@ -344,6 +345,10 @@ function runFakeBee(parserContext: CafeFnContext) {
         })
     }
     router.get('/health', (context: Koa.Context) => {
+        if (!state.toggles.health) {
+            context.status = 500
+            return
+        }
         context.body = {
             status: 'ok',
             version: parserContext.options.version,
