@@ -10,7 +10,7 @@ import { Token } from '../token'
 const logger = Logger.create('[Bee]')
 
 const state = {
-    chequebookBalance: Token.fromNumber(137),
+    chequebookBalance: Token.fromNumber(9.8818),
     stakedBalance: Token.fromNumber(0),
     nextBatchId: Strings.randomHex(64),
     toggles: {
@@ -389,7 +389,7 @@ function runFakeBee(parserContext: CafeFnContext) {
             context.body = {
                 jsonrpc: '2.0',
                 id,
-                result: '0x00000000000000000000000000000000000000000000014a314d9ff9b20b9800'
+                result: '0x000000000000000000000000000000000000000000000000114d9ff9b20b9800'
             }
         } else if (method === 'eth_getBalance') {
             context.body = {
@@ -403,7 +403,7 @@ function runFakeBee(parserContext: CafeFnContext) {
         router.get('/info', (context: Koa.Context) => {
             context.body = {
                 name: 'bee-desktop',
-                version: '1.9.0',
+                version: '0.16.0',
                 autoUpdateEnabled: false
             }
         })
@@ -523,8 +523,8 @@ function runFakeBee(parserContext: CafeFnContext) {
     router.get('/topology', (context: Koa.Context) => {
         context.body = {
             baseAddr: '36b7efd913ca4cf880b8eeac5093fa27b0825906c600685b6abdd6566e6cfe8f',
-            population: 1000,
-            connected: 100,
+            population: 2281,
+            connected: 137,
             timestamp: 'string',
             nnLowWatermark: 0,
             depth: 6
