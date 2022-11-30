@@ -302,6 +302,89 @@ function runFakeBee(parserContext: CafeFnContext) {
                 id,
                 result: '1'
             }
+        } else if (method === 'eth_gasPrice') {
+            context.body = {
+                jsonrpc: '2.0',
+                id,
+                result: '0x12a05f200'
+            }
+        } else if (method === 'eth_getBlockByNumber') {
+            context.body = {
+                jsonrpc: '2.0',
+                id: id,
+                result: {
+                    number: '0x1b4',
+                    difficulty: '0x4ea3f27bc',
+                    extraData: '0x476574682f4c5649562f76312e302e302f6c696e75782f676f312e342e32',
+                    gasLimit: '0x1388',
+                    gasUsed: '0x0',
+                    hash: '0xdc0818cf78f21a8e70579cb46a43643f78291264dda342ae31049421c82d21ae',
+                    logsBloom:
+                        '0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000',
+                    miner: '0xbb7b8287f3f0a933474a79eae42cbca977791171',
+                    mixHash: '0x4fffe9ae21f1c9e15207b1f472d5bbdd68c9595d461666602f2be20daf5e7843',
+                    nonce: '0x689056015818adbe',
+                    parentHash: '0xe99e022112df268087ea7eafaf4790497fd21dbeeb6bd7a1721df161a6657a54',
+                    receiptsRoot: '0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421',
+                    sha3Uncles: '0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347',
+                    size: '0x220',
+                    stateRoot: '0xddc8b0234c2e0cad087c8b389aa7ef01f7d79b2570bccb77ce48648aa61c904d',
+                    timestamp: '0x55ba467c',
+                    totalDifficulty: '0x78ed983323d',
+                    transactions: [],
+                    transactionsRoot: '0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421',
+                    uncles: []
+                }
+            }
+        } else if (method === 'eth_getTransactionCount') {
+            context.body = {
+                jsonrpc: '2.0',
+                id,
+                result: '0x0'
+            }
+        } else if (method === 'eth_estimateGas') {
+            context.body = {
+                jsonrpc: '2.0',
+                id,
+                result: '0x5208'
+            }
+        } else if (method === 'eth_blockNumber') {
+            context.body = {
+                jsonrpc: '2.0',
+                id: 0,
+                result: '0xa1c054'
+            }
+        } else if (method === 'eth_sendRawTransaction') {
+            let result = '0x5356713164a4f92cfe1129c8f685827e912cb736aeef9695b1525c74e1057b48'
+            if (
+                Types.asArray(Types.asObject(context.request.body).params)[0] ===
+                '0xf86d8085012a05f2008252089436b7efd913ca4cf880b8eeac5093fa27b082590688c1a29f05ab5dad7b8081eca0d36158d579f66e77fc808125054429805ed97dec9d49d86c12617f84ad91ef13a06ba311c5cebe862d73a2378014f59577a96c3c6ce869ba0289a2393cfff6d8ff'
+            ) {
+                result = '0xb869f7187534a7c7ffb39642377b5072959b117b82b9577a644c9b8e47efc2a6'
+            }
+            context.body = {
+                jsonrpc: '2.0',
+                id,
+                result
+            }
+        } else if (method === 'eth_getTransactionReceipt') {
+            context.body = {
+                jsonrpc: '2.0',
+                id,
+                result: {
+                    transactionHash: '0x5356713164a4f92cfe1129c8f685827e912cb736aeef9695b1525c74e1057b48',
+                    transactionIndex: '0x1',
+                    blockNumber: '0xb',
+                    blockHash: '0xc6ef2fc5426d6ad6fd9e2a26abeab0aa2411b7ab17f30a99d3cb96aed1d1055b',
+                    cumulativeGasUsed: '0x33bc',
+                    gasUsed: '0x4dc',
+                    contractAddress: '0xb60e8dd61c5d32be8058bb8eb970870f07233155',
+                    logs: [],
+                    logsBloom:
+                        '0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000', // 256 byte bloom filter
+                    status: '0x1'
+                }
+            }
         } else if (method === 'eth_call') {
             context.body = {
                 jsonrpc: '2.0',
