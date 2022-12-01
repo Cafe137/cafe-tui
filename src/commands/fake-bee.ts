@@ -13,6 +13,7 @@ const state = {
     chequebookBalance: Token.fromNumber(9.8818),
     stakedBalance: Token.fromNumber(0),
     nextBatchId: Strings.randomHex(64),
+    apiKey: '1',
     toggles: {
         health: true,
         readiness: true,
@@ -411,8 +412,13 @@ function runFakeBee(parserContext: CafeFnContext) {
             context.body = 0.45634
         })
         router.get('/config', (context: Koa.Context) => {
+            if (context.get('authorization') !== state.apiKey) {
+                context.status = 401
+                return
+            }
             if (!state.toggles.getDesktopConfiguration) {
                 context.status = 500
+                return
             }
             context.body = state.desktopConfiguration
         })
