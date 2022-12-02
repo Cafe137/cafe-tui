@@ -356,7 +356,7 @@ function runFakeBee(parserContext: CafeFnContext) {
                 result: '0xa1c054'
             }
         } else if (method === 'eth_sendRawTransaction') {
-            let result = '0x5356713164a4f92cfe1129c8f685827e912cb736aeef9695b1525c74e1057b48'
+            let result = '0x1941a67ff38e4edfe14d48daaf94014834181fede3332b8d4cbc49104e1e9735'
             if (
                 Types.asArray(Types.asObject(context.request.body).params)[0] ===
                 '0xf86d8085012a05f2008252089436b7efd913ca4cf880b8eeac5093fa27b082590688c1a29f05ab5dad7b8081eca0d36158d579f66e77fc808125054429805ed97dec9d49d86c12617f84ad91ef13a06ba311c5cebe862d73a2378014f59577a96c3c6ce869ba0289a2393cfff6d8ff'
@@ -373,7 +373,7 @@ function runFakeBee(parserContext: CafeFnContext) {
                 jsonrpc: '2.0',
                 id,
                 result: {
-                    transactionHash: '0x5356713164a4f92cfe1129c8f685827e912cb736aeef9695b1525c74e1057b48',
+                    transactionHash: '0x1941a67ff38e4edfe14d48daaf94014834181fede3332b8d4cbc49104e1e9735',
                     transactionIndex: '0x1',
                     blockNumber: '0xb',
                     blockHash: '0xc6ef2fc5426d6ad6fd9e2a26abeab0aa2411b7ab17f30a99d3cb96aed1d1055b',
