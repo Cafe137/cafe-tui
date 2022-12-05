@@ -1,4 +1,5 @@
 import Router from '@koa/router'
+import Big from 'big.js'
 import { CafeFnContext, Command, Parser } from 'cafe-args'
 import { Arrays, Dates, Logger, Numbers, Objects, Random, Strings, System, Types } from 'cafe-utility'
 import chalk from 'chalk'
@@ -598,15 +599,29 @@ function runFakeBee(parserContext: CafeFnContext) {
         context.body = { reference: Strings.randomHex(64) }
     })
     router.patch('/stamps/topup/:id/:amount', async (context: Koa.Context) => {
+        const stamp = stamps.find(stamp => stamp.batchID === context.params.id)
+        if (!stamp) {
+            context.status = 404
+            context.body = 'Not Found'
+            return
+        }
         if (parserContext.options['long-operations']) {
             await System.sleepMillis(Dates.seconds(20))
         }
+        stamp.amount = new Big(stamp.amount).plus(Types.asString(context.params.amount)).toString()
         context.body = { batchID: context.params.id }
     })
     router.patch('/stamps/dilute/:id/:depth', async (context: Koa.Context) => {
+        const stamp = stamps.find(stamp => stamp.batchID === context.params.id)
+        if (!stamp) {
+            context.status = 404
+            context.body = 'Not Found'
+            return
+        }
         if (parserContext.options['long-operations']) {
             await System.sleepMillis(Dates.seconds(20))
         }
+        stamp.depth = parseInt(context.params.depth, 10)
         context.body = { batchID: context.params.id }
     })
     router.post('/stamps/:amount/:depth', async (context: Koa.Context) => {
