@@ -128,6 +128,8 @@ export function registerProxyCommand(parser: Parser) {
                     env.POSTAGE_EXTENDSTTL = 'true'
                 }
                 if (dilute) {
+                    env.POSTAGE_DEPTH = '22'
+                    env.POSTAGE_AMOUNT = '200000'
                     env.BEE_DEBUG_API_URL = BEE_DEBUG_API_URL
                     env.POSTAGE_EXTENDS_CAPACITY = 'true'
                 }
