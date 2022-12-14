@@ -47,8 +47,8 @@ export function registerFunderCommands(parser: Parser) {
                         const privateKey = Strings.randomHex(64)
                         const address = await privateKeyToAddress(privateKey)
                         if (context.options.github) {
-                            console.log(`fundingPrivateKey::${privateKey}`)
-                            console.log(`fundingAddress::${address}`)
+                            console.log(`fundingPrivateKey=${privateKey}`)
+                            console.log(`fundingAddress=${address}`)
                         } else {
                             console.log({ privateKey })
                             console.log({ address })
