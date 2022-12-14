@@ -7,6 +7,7 @@ import { registerApiMonitorCommand } from './commands/api-monitor'
 import { registerBeeCommand } from './commands/bee'
 import { registerFakeBeeCommand } from './commands/fake-bee'
 import { registerFakeBeeControllerCommand } from './commands/fake-bee-controller'
+import { registerFunderCommands } from './commands/funder'
 import { registerGetUnzipCommand } from './commands/get-unzip'
 import { registerHabiticaCommands } from './commands/habitica'
 import { registerJestCommand } from './commands/jest'
@@ -31,6 +32,7 @@ async function main() {
     registerProxyCommand(parser)
     registerWatchCommand(parser)
     registerFakeBeeCommand(parser)
+    registerFunderCommands(parser)
     registerNetworkCommand(parser)
     registerProjectCommand(parser)
     registerGetUnzipCommand(parser)

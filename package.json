@@ -1,6 +1,6 @@
 {
     "name": "cafe-tui",
-    "version": "0.34.0",
+    "version": "0.35.0",
     "description": "",
     "main": "dist/index.js",
     "bin": {
@@ -32,8 +32,9 @@
         "axios": "^0.27.2",
         "big.js": "^6.2.1",
         "cafe-args": "^2.3.1",
-        "cafe-utility": "4.14",
+        "cafe-utility": "^4.20.0",
         "chalk": "^4.1.2",
+        "ethers": "^5.7.2",
         "inquirer": "^8",
         "js-yaml": "^4.1.0",
         "koa": "^2.13.4",
