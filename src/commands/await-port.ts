@@ -11,11 +11,18 @@ export function registerAwaitPortCommand(parser: Parser) {
                 type: 'number',
                 required: true
             })
+            .withPositional({
+                key: 'path',
+                description: 'Path to wait for'
+            })
             .withFn(async context => {
                 const result = await System.waitFor(
                     async () => {
                         try {
-                            await axios.get(`http://localhost:${context.arguments.port}`)
+                            const url = context.arguments.path
+                                ? `http://localhost:${context.arguments.port}/${context.arguments.path}`
+                                : `http://localhost:${context.arguments.port}`
+                            await axios.get(url)
                             return true
                         } catch (error) {
                             return false
