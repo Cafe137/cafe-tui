@@ -4,6 +4,7 @@ import { createParser } from 'cafe-args'
 import { Types } from 'cafe-utility'
 import { exit } from 'process'
 import { registerApiMonitorCommand } from './commands/api-monitor'
+import { registerAwaitPortCommand } from './commands/await-port'
 import { registerBeeCommand } from './commands/bee'
 import { registerFakeBeeCommand } from './commands/fake-bee'
 import { registerFakeBeeControllerCommand } from './commands/fake-bee-controller'
@@ -37,6 +38,7 @@ async function main() {
     registerProjectCommand(parser)
     registerGetUnzipCommand(parser)
     registerProxyCliCommand(parser)
+    registerAwaitPortCommand(parser)
     registerHabiticaCommands(parser)
     registerApiMonitorCommand(parser)
     registerMonkeyPatchCommand(parser)
