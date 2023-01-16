@@ -1,5 +1,5 @@
 import { Command, Parser } from 'cafe-args'
-import { System } from 'cafe-utility'
+import { Exec } from 'cafe-node-utility'
 import { requireEnv } from '../utility'
 
 export function registerBeeCommand(parser: Parser) {
@@ -14,7 +14,7 @@ export function registerBeeCommand(parser: Parser) {
             })
             .withFn(async context => {
                 const location = requireEnv('CAFE_CLI_PROJECT_DESKTOP')
-                System.runProcess(
+                Exec.runProcess(
                     './bee',
                     [context.options.dev ? 'dev' : 'start', '--config=config.yaml'],
                     { cwd: location },

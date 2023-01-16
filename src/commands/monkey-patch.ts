@@ -1,5 +1,6 @@
 import { Command, Parser } from 'cafe-args'
-import { Files, Types } from 'cafe-utility'
+import { Files } from 'cafe-node-utility'
+import { Types } from 'cafe-utility'
 import { writeFile } from 'fs/promises'
 
 export function registerMonkeyPatchCommand(parser: Parser) {

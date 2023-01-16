@@ -1,5 +1,5 @@
 import { Command, Parser } from 'cafe-args'
-import { System } from 'cafe-utility'
+import { Exec } from 'cafe-node-utility'
 import { BEE_DEBUG_API_URL } from '../constants'
 import { findPostageStamp } from '../stamp'
 
@@ -9,7 +9,7 @@ export function registerJestCommand(parser: Parser) {
             alias: 'j'
         }).withFn(async () => {
             const stamp = await findPostageStamp(BEE_DEBUG_API_URL)
-            await System.runProcess(
+            await Exec.runProcess(
                 'npm',
                 ['test', '--', '--colors'],
                 {

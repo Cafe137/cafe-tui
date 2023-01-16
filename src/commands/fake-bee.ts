@@ -1,7 +1,8 @@
 import Router from '@koa/router'
 import Big from 'big.js'
 import { CafeFnContext, Command, Parser } from 'cafe-args'
-import { Arrays, Dates, Logger, Numbers, Objects, Random, Strings, System, Types } from 'cafe-utility'
+import { Logger } from 'cafe-node-utility'
+import { Arrays, Dates, Numbers, Objects, Random, Strings, System, Types } from 'cafe-utility'
 import chalk from 'chalk'
 import Koa from 'koa'
 import bodyParser from 'koa-bodyparser'
@@ -251,7 +252,7 @@ function runFakeBee(parserContext: CafeFnContext) {
     }
     if (parserContext.options.throttling) {
         app.use(async (_, next) => {
-            await System.sleepMillis(Random.inclusiveInt(0, Types.asNumber(parserContext.options.throttling) / 2))
+            await System.sleepMillis(Random.intBetween(0, Types.asNumber(parserContext.options.throttling) / 2))
             await next()
         })
     }
@@ -642,7 +643,7 @@ function runFakeBee(parserContext: CafeFnContext) {
     app.use(router.routes())
     if (parserContext.options.throttling) {
         app.use(async (_, next) => {
-            await System.sleepMillis(Random.inclusiveInt(0, Types.asNumber(parserContext.options.throttling) / 2))
+            await System.sleepMillis(Random.intBetween(0, Types.asNumber(parserContext.options.throttling) / 2))
             await next()
         })
     }
