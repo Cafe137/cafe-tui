@@ -6,6 +6,7 @@ import { exit } from 'process'
 import { registerApiMonitorCommand } from './commands/api-monitor'
 import { registerAwaitPortCommand } from './commands/await-port'
 import { registerBeeCommand } from './commands/bee'
+import { registerExpandCommand } from './commands/expand'
 import { registerFakeBeeCommand } from './commands/fake-bee'
 import { registerFakeBeeControllerCommand } from './commands/fake-bee-controller'
 import { registerFunderCommands } from './commands/funder'
@@ -17,6 +18,7 @@ import { registerNetworkCommand } from './commands/network'
 import { registerProjectCommand } from './commands/project'
 import { registerProxyCommand } from './commands/proxy'
 import { registerProxyCliCommand } from './commands/proxy-cli'
+import { registerSecureCommands } from './commands/secure'
 import { registerWatchCommand } from './commands/watch'
 
 async function main() {
@@ -32,10 +34,12 @@ async function main() {
     registerJestCommand(parser)
     registerProxyCommand(parser)
     registerWatchCommand(parser)
+    registerExpandCommand(parser)
     registerFakeBeeCommand(parser)
     registerFunderCommands(parser)
     registerNetworkCommand(parser)
     registerProjectCommand(parser)
+    registerSecureCommands(parser)
     registerGetUnzipCommand(parser)
     registerProxyCliCommand(parser)
     registerAwaitPortCommand(parser)

@@ -1,6 +1,7 @@
 import axios from 'axios'
 import { Command, Parser } from 'cafe-args'
-import { Arrays, Files, Objects, System } from 'cafe-utility'
+import { Files } from 'cafe-node-utility'
+import { Arrays, Objects, System } from 'cafe-utility'
 
 const endpoints = [
     'http://localhost:1635/health',

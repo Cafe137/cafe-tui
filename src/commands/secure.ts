@@ -1,5 +1,5 @@
 import { Command, Group, Parser } from 'cafe-args'
-import { Files } from 'cafe-utility'
+import { Files } from 'cafe-node-utility'
 import { createCipheriv, createDecipheriv, randomBytes, scryptSync } from 'crypto'
 import { writeFile } from 'fs/promises'
 import inquirer from 'inquirer'

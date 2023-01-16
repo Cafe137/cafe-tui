@@ -1,5 +1,6 @@
 import { Command, Group, Parser } from 'cafe-args'
-import { Strings, System, Types } from 'cafe-utility'
+import { Exec } from 'cafe-node-utility'
+import { Strings, Types } from 'cafe-utility'
 import { Wallet } from 'ethers'
 import { requireEnv } from '../utility'
 
@@ -66,7 +67,7 @@ export function registerFunderCommands(parser: Parser) {
 }
 
 async function fundWallet(address: string): Promise<void> {
-    await System.runProcess(
+    await Exec.runProcess(
         'go',
         [
             'run',

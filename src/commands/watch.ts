@@ -1,4 +1,5 @@
 import { Command, Parser, tokenize } from 'cafe-args'
+import { Exec } from 'cafe-node-utility'
 import { Dates, System, Types } from 'cafe-utility'
 
 export function registerWatchCommand(parser: Parser) {
@@ -21,7 +22,7 @@ export function registerWatchCommand(parser: Parser) {
                 System.forever(async () => {
                     const { argv } = tokenize(Types.asString(context.options.command), 0)
                     const command = Types.asString(argv.shift())
-                    await System.runProcess(
+                    await Exec.runProcess(
                         command,
                         argv,
                         {},

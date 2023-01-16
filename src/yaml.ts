@@ -1,4 +1,5 @@
-import { Files, Objects } from 'cafe-utility'
+import { Files } from 'cafe-node-utility'
+import { Objects } from 'cafe-utility'
 import { writeFile } from 'fs/promises'
 import { dump, FAILSAFE_SCHEMA, load } from 'js-yaml'
 import { join } from 'path'

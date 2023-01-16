@@ -1,6 +1,6 @@
 import axios from 'axios'
 import { Command, Parser, tokenize } from 'cafe-args'
-import { System } from 'cafe-utility'
+import { Exec } from 'cafe-node-utility'
 
 const PROXY_URL = 'http://localhost:3000'
 
@@ -36,7 +36,7 @@ export function registerProxyCliCommand(parser: Parser) {
                     argv.push('--stamp')
                     argv.push('00'.repeat(32))
                 }
-                await System.runProcess(
+                await Exec.runProcess(
                     'swarm-cli',
                     argv,
                     {},

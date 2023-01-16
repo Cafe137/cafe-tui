@@ -1,5 +1,6 @@
 import { Command, Parser } from 'cafe-args'
-import { Dates, System, Types } from 'cafe-utility'
+import { Exec } from 'cafe-node-utility'
+import { Dates, Types } from 'cafe-utility'
 import { BEE_DEBUG_API_URL } from '../constants'
 import { findPostageStamp } from '../stamp'
 import { requireEnv } from '../utility'
@@ -161,7 +162,7 @@ export function registerProxyCommand(parser: Parser) {
                 if (context.options['dry-run']) {
                     return
                 }
-                System.runProcess(
+                Exec.runProcess(
                     'npm',
                     ['start'],
                     { cwd: location, env },
